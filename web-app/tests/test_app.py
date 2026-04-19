@@ -1,4 +1,5 @@
 """Unit tests for the Flask web application."""
+
 # pylint: disable=redefined-outer-name, import-error
 import pytest
 from bson.objectid import ObjectId
