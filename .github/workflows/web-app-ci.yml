@@ -35,10 +35,7 @@ jobs:
         run: |
           cd web-app
           python -m pytest --cov=app --cov-fail-under=80
-<<<<<<< HEAD
-=======
         env:
           MONGO_URI: mongodb://localhost:27017
           DB_NAME: emotion_db
           COLLECTION_NAME: scans
->>>>>>> origin/main
