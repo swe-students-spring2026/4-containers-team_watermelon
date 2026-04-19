@@ -66,7 +66,6 @@ def create_app(test_config=None):
 
     app.db = None
     app.collection_name = collection_name
-
     try:
         connection = pymongo.MongoClient(
             mongo_uri,
