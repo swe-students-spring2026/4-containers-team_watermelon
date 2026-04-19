@@ -1,10 +1,7 @@
-<<<<<<< HEAD
-# Actor Emotion Coach
+# Actor Emotion 
 
-=======
->>>>>>> origin/main
 [![ML Client CI](https://github.com/swe-students-spring2026/4-containers-team_watermelon/actions/workflows/ml-client-ci.yml/badge.svg?branch=main)](https://github.com/swe-students-spring2026/4-containers-team_watermelon/actions/workflows/ml-client-ci.yml)
-[![Web App CI](https://github.com/swe-students-spring2026/4-containers-team_watermelon/actions/workflows/web-app-ci.yml/badge.svg?branch=main)](https://github.com/swe-students-spring2026/4-containers-team_watermelon/actions/workflows/web-app-ci.yml)
+[![Web App CI](https://github.com/swe-students-spring2026/4-containers-team_watermelon/actions/workflows/web-app-ci.yml/badge.svg)](https://github.com/swe-students-spring2026/4-containers-team_watermelon/actions/workflows/web-app-ci.yml)
 
 # Actor Cam
 

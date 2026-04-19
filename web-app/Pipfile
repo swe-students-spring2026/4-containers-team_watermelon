@@ -13,7 +13,9 @@ pytest-cov = "*"
 tomli = "*"
 typing-extensions = "*"
 flask = "*"
-pymongo = "*"
+pymongo = {extras = ["srv"], version = "*"}
+certifi = "*"
+dnspython = "*"
 python-dotenv = "*"
 
 [dev-packages]
