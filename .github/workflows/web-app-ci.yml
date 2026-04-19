@@ -5,6 +5,16 @@ on: [pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:latest
+        options: >-
+          --health-cmd "mongosh --eval 'db.adminCommand(\"ping\")'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 27017:27017
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -26,3 +36,7 @@ jobs:
         run: |
           cd web-app
           python -m pytest --cov=app --cov-fail-under=80
+        env:
+          MONGO_URI: mongodb://localhost:27017
+          DB_NAME: emotion_db
+          COLLECTION_NAME: scans

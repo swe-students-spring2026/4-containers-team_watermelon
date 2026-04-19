@@ -1,11 +1,16 @@
-import os
-import pymongo
+"""Main Flask application module."""
+
+# pylint: disable=redefined-outer-name, broad-exception-caught, too-many-statements
+
 import base64
+import os
 from datetime import datetime
 from pathlib import Path
-from flask import Flask, render_template, request, jsonify
-from dotenv import load_dotenv
+
+import pymongo
 from bson import ObjectId
+from dotenv import load_dotenv
+from flask import Flask, jsonify, render_template, request
 
 load_dotenv()
 
@@ -25,7 +30,7 @@ def create_app(test_config=None):
 
     app.db = None
     app.collection_name = collection_name
-    """'change to app.db = connection[actual name] """
+    # change to app.db = connection[actual name]
     try:
         connection = pymongo.MongoClient(mongo_uri, serverSelectionTimeoutMS=2000)
         connection.server_info()  # Force connection check immediately
@@ -93,7 +98,7 @@ def create_app(test_config=None):
         )
 
     @app.route("/practice")
-    def practiceScreen():
+    def practice_screen():
         return render_template("practice.html")
 
     @app.route("/practice/submit", methods=["POST"])
@@ -107,7 +112,7 @@ def create_app(test_config=None):
             return jsonify({"error": "Missing image data or target emotion"}), 400
 
         try:
-            header, encoded = image_data.split(",", 1)
+            _header, encoded = image_data.split(",", 1)
             image_bytes = base64.b64decode(encoded)
 
             output_dir = Path("practice_captures")
