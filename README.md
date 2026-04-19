@@ -18,6 +18,8 @@ The platform asks users to perform target emotions such as happy, sad, angry, su
 - [Diya Greben](https://github.com/diyagreben)
 - [Bella D'Aquino](https://github.com/belladaq)
 
+[Task Board](https://github.com/orgs/swe-students-spring2026/projects/114/views/1)
+
 ## Main Features
 
 - User account creation
@@ -75,6 +77,6 @@ docker compose up --build
 ```
 Then open this URL in your browser: http://127.0.0.1:5001/
 
-After signing in, the user can start emotion training tasks, submit facial scans, and review previous scores and results.
+The user can start emotion training tasks, submit facial scans, and review previous scores and results.
 
 NOTE: No additional starter data is required.
