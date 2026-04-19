@@ -3,61 +3,86 @@
 
 {% block content %}
 
-<h2 class="mb-4 fw-bold">Emotion Practice</h2>
+<div class="container-fluid px-2">
+    <h2 class="mb-4 fw-bold">Emotion Practice</h2>
 
-<!-- Emotion Selector -->
-<div class="card shadow-sm mb-4 p-3">
-    <h6 class="text-muted mb-3">Please select an emotion to practice:</h6>
-    <div class="d-flex flex-wrap gap-2 mb-3">
-        {% for emotion in ['Happy', 'Sad', 'Disgust', 'Neutral', 'Angry', 'Fear', 'Surprise'] %}
-        <button type="button" class="btn btn-outline-primary emotion-btn" data-emotion="{{ emotion }}">
-            {{ emotion }}
-        </button>
-        {% endfor %}
-    </div>
-    <p class="mb-0">
-        <strong>Selected Emotion:</strong>
-        <span id="selectedEmotionText">None</span>
-    </p>
-</div>
+    <div class="row g-4">
 
-<div class="mb-4">
-    <h1>Actor Camera</h1>
-    <div class="bg-secondary d-flex align-items-center justify-content-center overflow-hidden"
-         style="width: 100%; height: 1000px; border-radius: 8px;">
-        <video id="cameraFeed" autoplay playsinline muted
-               style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
-        <span id="cameraPlaceholder" class="text-white">Camera Feed</span>
+        <div class="col-lg-7">
+
+            <!-- Emotion selector -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h6 class="card-title text-muted mb-3">Select an emotion to practice:</h6>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        {% for emotion in ['Happy', 'Sad', 'Disgust', 'Neutral', 'Angry', 'Fear', 'Surprise'] %}
+                        <button type="button" class="btn btn-outline-primary emotion-btn" data-emotion="{{ emotion }}">
+                            {{ emotion }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                    <p class="mb-0 small">
+                        <strong>Selected:</strong>
+                        <span id="selectedEmotionText" class="text-primary fw-semibold">None</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Camera feed -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-body p-2">
+                    <div class="position-relative bg-dark d-flex align-items-center justify-content-center overflow-hidden"
+                         style="width: 100%; aspect-ratio: 4/3; border-radius: 6px;">
+                        <video id="cameraFeed" autoplay playsinline muted
+                               style="width: 100%; height: 100%; object-fit: cover; display: none;"></video>
+                        <span id="cameraPlaceholder" class="text-secondary">Camera Feed</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Start button -->
+            <button id="startPracticeBtn" type="button" class="btn btn-primary w-100" disabled>
+                Start Practice
+            </button>
+
+        </div>
+
+        <div class="col-lg-5 d-flex flex-column gap-3">
+            <!-- Timer -->
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted mb-3">Timer</h6>
+                    <div class="bg-dark d-flex align-items-center justify-content-center rounded"
+                         style="height: 80px;">
+                        <span id="timerText" class="text-white fs-2 fw-bold">Ready</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Score -->
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted mb-3">Convincing Acting Rate</h6>
+                    <div class="bg-dark d-flex align-items-center justify-content-center rounded"
+                         style="height: 80px;">
+                        <span id="scoreText" class="text-white fs-4">Waiting for attempt</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback -->
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <h6 class="card-title text-muted mb-3">Result</h6>
+                    <p id="feedbackText" class="mb-0 fw-semibold fs-5 text-secondary">Waiting for result</p>
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
 
 <canvas id="captureCanvas" style="display: none;"></canvas>
-
-<div class="mb-4">
-    <button id="startPracticeBtn" type="button" class="btn btn-primary" disabled>
-        Start Practice
-    </button>
-</div>
-
-<div class="d-flex gap-4">
-    <div class="flex-fill">  <!-- flex-fill makes it take equal space -->
-        <h1>Timer</h1>
-        <div class="bg-secondary d-flex align-items-center justify-content-center"
-             style="height: 100px; border-radius: 8px;">
-            <span id="timerText" class="text-white fs-3">Ready</span>
-        </div>
-    </div>
-
-    <div class="flex-fill">
-        <h1>Convincing Acting Rate %</h1>
-        <div class="bg-secondary d-flex align-items-center justify-content-center"
-             style="height: 100px; border-radius: 8px;">
-            <span id="scoreText" class="text-white fs-4">Waiting for attempt</span>
-        </div>
-    </div>
-</div>
-
-<p id="feedbackText" class="mt-2 mb-0 fw-semibold">Waiting for result</p>
 
 <script>
     const emotionButtons = document.querySelectorAll(".emotion-btn");
@@ -80,7 +105,6 @@
                 btn.classList.remove("btn-primary");
                 btn.classList.add("btn-outline-primary");
             });
-
             button.classList.remove("btn-outline-primary");
             button.classList.add("btn-primary");
             selectedEmotion = button.dataset.emotion;
@@ -90,9 +114,7 @@
     });
 
     async function startCamera() {
-        if (cameraStarted) {
-            return true;
-        }
+        if (cameraStarted) return true;
         try {
             stream = await navigator.mediaDevices.getUserMedia({ video: true });
             video.srcObject = stream;
@@ -112,113 +134,106 @@
         canvas.height = video.videoHeight;
         const context = canvas.getContext("2d");
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
         return canvas.toDataURL("image/jpeg");
     }
 
     async function sendCaptureToBackend(imageData, targetEmotion) {
         const response = await fetch("/practice/submit", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                image_data: imageData,
-                target_emotion: targetEmotion
-            })
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image_data: imageData, target_emotion: targetEmotion })
         });
-
         const result = await response.json();
-        if (!response.ok) {
-            throw new Error(result.error || "Failed to submit capture");
-        }
+        if (!response.ok) throw new Error(result.error || "Failed to submit capture");
         return result;
     }
 
     async function startPractice() {
-        if (!selectedEmotion) {
-            return;
-        }
+        if (!selectedEmotion) return;
         const cameraReady = await startCamera();
         if (!cameraReady) {
             scoreText.textContent = "Camera unavailable";
             return;
         }
 
+        startPracticeBtn.disabled = true;
         let timeLeft = 3;
         timerText.textContent = timeLeft;
         scoreText.textContent = "Practicing " + selectedEmotion;
+        feedbackText.textContent = "Waiting for result";
+        feedbackText.className = "mb-0 fw-semibold fs-5 text-secondary";
 
         const intervalId = setInterval(async () => {
             timeLeft -= 1;
-
             if (timeLeft > 0) {
                 timerText.textContent = timeLeft;
             } else {
                 clearInterval(intervalId);
                 timerText.textContent = "Captured";
                 const imageData = captureFrame();
-                scoreText.textContent = "Sending to backend...";
+                scoreText.textContent = "Sending...";
                 try {
                     const result = await sendCaptureToBackend(imageData, selectedEmotion);
-                    console.log("Submit result:", result);
-
                     if (result.scan_id) {
                         await pollForResult(result.scan_id);
                     } else {
                         scoreText.textContent = "No scan ID returned";
+                        startPracticeBtn.disabled = false;
                     }
                 } catch (error) {
                     console.error("Submit error:", error);
-                    scoreText.textContent = "Failed to submit capture";
+                    scoreText.textContent = "Failed to submit: " + error.message;
+                    startPracticeBtn.disabled = false;
                 }
             }
         }, 1000);
     }
 
     startPracticeBtn.addEventListener("click", startPractice);
-        async function fetchPracticeResult(scanId) {
+
+    async function fetchPracticeResult(scanId) {
         const response = await fetch(`/practice/result/${scanId}`);
         const result = await response.json();
-
-        if (!response.ok) {
-            throw new Error(result.error || "Failed to fetch result");
-        }
+        if (!response.ok) throw new Error(result.error || "Failed to fetch result");
         return result;
     }
 
     async function pollForResult(scanId) {
-        scoreText.textContent = "Processing attempt...";
+        scoreText.textContent = "Processing...";
         const intervalId = setInterval(async () => {
             try {
                 const result = await fetchPracticeResult(scanId);
-
                 if (result.status === "done") {
                     clearInterval(intervalId);
-
                     const score = result.match_score !== null
                         ? Number(result.match_score).toFixed(1)
                         : "0.0";
-
                     scoreText.textContent = `${score}%`;
                     feedbackText.textContent = `Model predicted: ${result.predicted_emotion}`;
 
                     if (result.passed) {
-                        timerText.textContent = "Passed";
+                        timerText.textContent = "Passed ✓";
+                        timerText.className = "fw-bold fs-2 text-success";
+                        feedbackText.className = "mb-0 fw-semibold fs-5 text-success";
                     } else {
                         timerText.textContent = "Try Again";
+                        timerText.className = "fw-bold fs-2 text-warning";
+                        feedbackText.className = "mb-0 fw-semibold fs-5 text-warning";
                     }
+                    startPracticeBtn.disabled = false;
                 }
                 if (result.status === "error") {
                     clearInterval(intervalId);
                     timerText.textContent = "Error";
                     scoreText.textContent = result.error_message || "Processing failed";
+                    startPracticeBtn.disabled = false;
                 }
             } catch (error) {
                 clearInterval(intervalId);
                 timerText.textContent = "Error";
                 scoreText.textContent = "Could not fetch result";
                 console.error("Polling error:", error);
+                startPracticeBtn.disabled = false;
             }
         }, 1000);
     }

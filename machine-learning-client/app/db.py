@@ -2,11 +2,12 @@
 
 from datetime import datetime, timezone
 
+import certifi
 from pymongo import MongoClient, ReturnDocument
 
 from app.config import COLLECTION_NAME, DB_NAME, MONGO_URI
 
-client = MongoClient(MONGO_URI)
+client = MongoClient(MONGO_URI, tlsCAFile=certifi.where())
 db = client[DB_NAME]
 scans = db[COLLECTION_NAME]
 

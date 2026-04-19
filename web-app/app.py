@@ -1,20 +1,61 @@
-import os
-import pymongo
+"""Flask web application for the Actor Emotion Coach platform."""
+
 import base64
+import os
 from datetime import datetime
 from pathlib import Path
-from flask import Flask, render_template, request, jsonify
-from dotenv import load_dotenv
-from bson import ObjectId
 
-load_dotenv()
+import certifi
+import pymongo
+from bson import ObjectId
+from bson.errors import InvalidId
+from dotenv import find_dotenv, load_dotenv
+from flask import Flask, jsonify, render_template, request
+
+load_dotenv(find_dotenv())
+
+
+def _build_scan_doc(image_path, target_emotion):
+    """Return a new pending scan document."""
+    return {
+        "actor_name": "anonymous",
+        "image_path": str(image_path.resolve()),
+        "target_emotion": target_emotion.lower(),
+        "status": "pending",
+        "created_at": datetime.now(),
+        "started_at": None,
+        "processed_at": None,
+        "predicted_emotion": None,
+        "emotion_scores": None,
+        "match_score": None,
+        "passed": None,
+        "face_detected": None,
+        "processing_time_ms": None,
+        "error_message": None,
+    }
+
+
+def _save_image(image_data, target_emotion):
+    """Decode base64 image and save to disk. Returns the file path."""
+    _, encoded = image_data.split(",", 1)
+    image_bytes = base64.b64decode(encoded)
+
+    output_dir = Path("practice_captures")
+    output_dir.mkdir(exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    filename = f"{target_emotion.lower()}_{timestamp}.jpg"
+    image_path = output_dir / filename
+
+    with open(image_path, "wb") as image_file:
+        image_file.write(image_bytes)
+
+    return image_path
 
 
 def create_app(test_config=None):
-    """
-    Application factory to create and configure the Flask app.
-    """
-    app = Flask(__name__)
+    """Application factory to create and configure the Flask app."""
+    app = Flask(__name__)  # pylint: disable=redefined-outer-name
 
     if test_config:
         app.config.update(test_config)
@@ -25,36 +66,34 @@ def create_app(test_config=None):
 
     app.db = None
     app.collection_name = collection_name
-    """'change to app.db = connection[actual name] """
+
     try:
-        connection = pymongo.MongoClient(mongo_uri, serverSelectionTimeoutMS=2000)
-        connection.server_info()  # Force connection check immediately
+        connection = pymongo.MongoClient(
+            mongo_uri,
+            serverSelectionTimeoutMS=2000,
+            tlsCAFile=certifi.where(),
+        )
+        connection.server_info()
         app.db = connection[db_name]
-    except Exception as exc:
+    except pymongo.errors.PyMongoError as exc:
         print(f"Failed to connect to MongoDB: {exc}")
 
     @app.route("/debug")
     def debug():
+        """Return all scans for debugging."""
         if app.db is None:
             return {"error": "no db"}
 
         scans = list(app.db["scans"].find())
-
         for scan in scans:
             scan["_id"] = str(scan["_id"])
-
         return jsonify(scans)
 
     @app.route("/")
     def home():
-        """
-        Main dashboard route.
-        Returns dummy data if MongoDB is not connected.
-        """
+        """Main dashboard route."""
         emotion_filter = request.args.get("emotion", "all")
-
         emotions = ["happy", "sad", "angry", "surprise", "neutral", "disgust", "fear"]
-
         activities = []
         emotion_counts = {e: 0 for e in emotions}
         db_connected = app.db is not None
@@ -93,13 +132,17 @@ def create_app(test_config=None):
         )
 
     @app.route("/practice")
-    def practiceScreen():
+    def practice_screen():
+        """Render the practice screen."""
         return render_template("practice.html")
 
     @app.route("/practice/submit", methods=["POST"])
     def practice_submit():
-        data = request.get_json()
+        """Accept a captured image and create a pending scan in the database."""
+        if app.db is None:
+            return jsonify({"error": "No database connection"}), 500
 
+        data = request.get_json()
         image_data = data.get("image_data")
         target_emotion = data.get("target_emotion")
 
@@ -107,36 +150,8 @@ def create_app(test_config=None):
             return jsonify({"error": "Missing image data or target emotion"}), 400
 
         try:
-            header, encoded = image_data.split(",", 1)
-            image_bytes = base64.b64decode(encoded)
-
-            output_dir = Path("practice_captures")
-            output_dir.mkdir(exist_ok=True)
-
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{target_emotion.lower()}_{timestamp}.jpg"
-            image_path = output_dir / filename
-
-            with open(image_path, "wb") as image_file:
-                image_file.write(image_bytes)
-
-            scan_doc = {
-                "actor_name": "anonymous",
-                "image_path": str(image_path.resolve()),
-                "target_emotion": target_emotion.lower(),
-                "status": "pending",
-                "created_at": datetime.now(),
-                "started_at": None,
-                "processed_at": None,
-                "predicted_emotion": None,
-                "emotion_scores": None,
-                "match_score": None,
-                "passed": None,
-                "face_detected": None,
-                "processing_time_ms": None,
-                "error_message": None,
-            }
-
+            image_path = _save_image(image_data, target_emotion)
+            scan_doc = _build_scan_doc(image_path, target_emotion)
             inserted = app.db[app.collection_name].insert_one(scan_doc)
 
             return jsonify(
@@ -146,12 +161,12 @@ def create_app(test_config=None):
                     "scan_id": str(inserted.inserted_id),
                 }
             )
-
-        except Exception as exc:
+        except (OSError, ValueError) as exc:
             return jsonify({"error": str(exc)}), 500
 
     @app.route("/practice/result/<scan_id>")
     def practice_result(scan_id):
+        """Return the processing result for a given scan."""
         if app.db is None:
             return jsonify({"error": "No database connection"}), 500
 
@@ -174,7 +189,7 @@ def create_app(test_config=None):
                     "error_message": scan.get("error_message"),
                 }
             )
-        except Exception as exc:
+        except (ValueError, KeyError, InvalidId) as exc:
             return jsonify({"error": str(exc)}), 500
 
     return app

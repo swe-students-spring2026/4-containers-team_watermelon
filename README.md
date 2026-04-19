@@ -1,7 +1,7 @@
 # Actor Emotion Coach
 
-![Lint-free](https://github.com/nyu-software-engineering/containerized-app-exercise/actions/workflows/lint.yml/badge.svg)
 [![ML Client CI](https://github.com/swe-students-spring2026/4-containers-team_watermelon/actions/workflows/ml-client-ci.yml/badge.svg?branch=main)](https://github.com/swe-students-spring2026/4-containers-team_watermelon/actions/workflows/ml-client-ci.yml)
+[![Web App CI](https://github.com/swe-students-spring2026/4-containers-team_watermelon/actions/workflows/web-app-ci.yml/badge.svg?branch=main)](https://github.com/swe-students-spring2026/4-containers-team_watermelon/actions/workflows/web-app-ci.yml)
 
 
 ## Project Description
