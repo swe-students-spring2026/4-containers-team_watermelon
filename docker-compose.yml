@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+
+  web-app:
+    build: ./web-app
+    ports:
+      - "5001:5001"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017
+      DB_NAME: emotion_db
+      COLLECTION_NAME: scans
+      FLASK_PORT: 5001
+    depends_on:
+      - mongodb
+    volumes:
+      - practice_captures:/app/practice_captures
+
+  machine-learning-client:
+    build: ./machine-learning-client
+    environment:
+      MONGO_URI: mongodb://mongodb:27017
+      DB_NAME: emotion_db
+      COLLECTION_NAME: scans
+      POLL_INTERVAL: 3
+      PASS_THRESHOLD: 60
+    depends_on:
+      - mongodb
+    volumes:
+      - practice_captures:/app/practice_captures
+
+volumes:
+  practice_captures:

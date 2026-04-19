@@ -189,4 +189,4 @@ app = create_app()
 
 if __name__ == "__main__":
     flask_port = int(os.getenv("FLASK_PORT", "5001"))
-    app.run(host="localhost", port=flask_port)
+    app.run(host="0.0.0.0", port=flask_port)
