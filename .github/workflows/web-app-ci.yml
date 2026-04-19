@@ -23,6 +23,9 @@ jobs:
           black --check .
           pylint app tests
       - name: Test with pytest
+        env:
+          MONGO_URI: "mongodb://dummy:27017"
+          MONGO_DBNAME: "test"
         run: |
           cd web-app
           python -m pytest --cov=app --cov-fail-under=80
